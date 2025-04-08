@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"myecommerceapp:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"myecommerceapp\")].image"}]'
+  creationTimestamp: null
+  labels:
+    deployment: "myecommerceapp"
+    app.kubernetes.io/component: "myecommerceapp"
+    app.kubernetes.io/instance: "myecommerceapp"
+    backstage.io/kubernetes-id: "myecommerceapp"
+  name: "myecommerceapp"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: "myecommerceapp"
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      creationTimestamp: null
+      labels:
+        deployment: "myecommerceapp"
+        backstage.io/kubernetes-id: "myecommerceapp"
+    spec:
+      containers:
+        - image: " "
+          name: "myecommerceapp"
+          resources: {}

@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: "argocd-myecommerceapp"
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: "https://github.com/ocp-rhdh-poc/myecommerceapp-gitops.git"
+    targetRevision: HEAD
+    path: ./java-was-app/deployments
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: "demo"
+  ignoreDifferences:
+    - group: "*"
+      jqPathExpressions:
+        - '.imagePullSecrets[] | select(.name | contains("-dockercfg-"))'
+      kind: ServiceAccount
+    - group: "apps"
+      kind: Deployment
+      jqPathExpressions:
+        - ".spec.template.spec.containers[].image"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 10m

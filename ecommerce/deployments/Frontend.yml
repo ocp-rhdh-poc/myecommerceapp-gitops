@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "myecommerceapp-frontend"
+  labels:
+    app: "myecommerceapp-frontend"
+spec:
+  selector:
+    matchLabels:
+      app: "myecommerceapp-frontend"
+  template:
+    metadata:
+      labels:
+        app: "myecommerceapp-frontend"
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+    spec:
+      containers:
+        - name: server
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+          image: us-central1-docker.pkg.dev/google-samples/microservices-demo/frontend:v0.10.2
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: 8080
+              httpHeaders:
+                - name: "Cookie"
+                  value: "shop_session-id=x-readiness-probe"
+          livenessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: 8080
+              httpHeaders:
+                - name: "Cookie"
+                  value: "shop_session-id=x-liveness-probe"
+          env:
+            - name: PORT
+              value: "8080"
+            - name: PRODUCT_CATALOG_SERVICE_ADDR
+              value: "myecommerceapp-productcatalogservice:3550"
+            - name: CURRENCY_SERVICE_ADDR
+              value: "myecommerceapp-currencyservice:7000"
+            - name: CART_SERVICE_ADDR
+              value: "myecommerceapp-cartservice:7070"
+            - name: RECOMMENDATION_SERVICE_ADDR
+              value: "myecommerceapp-recommendationservice:8080"
+            - name: SHIPPING_SERVICE_ADDR
+              value: "myecommerceapp-shippingservice:50051"
+            - name: CHECKOUT_SERVICE_ADDR
+              value: "myecommerceapp-checkoutservice:5050"
+            - name: AD_SERVICE_ADDR
+              value: "myecommerceapp-adservice:9555"
+            - name: SHOPPING_ASSISTANT_SERVICE_ADDR
+              value: "myecommerceapp-shoppingassistantservice:80"
+            - name: ENABLE_PROFILER
+              value: "0"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "myecommerceapp-frontend"
+  labels:
+    app: "myecommerceapp-frontend"
+spec:
+  type: ClusterIP
+  selector:
+    app: "myecommerceapp-frontend"
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: ecommerce-route
+  labels:
+    app: "myecommerceapp-frontend"
+spec:
+  to:
+    kind: Service
+    name: "myecommerceapp-frontend"
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

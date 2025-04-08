@@ -1,0 +1,33 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: "myecommerceapp"
+  labels:
+    app: "myecommerceapp"
+    backstage.io/kubernetes-id: "myecommerceapp"
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "myecommerceapp:latest"
+  postCommit: {}
+  resources: {}
+  source:
+    git:
+      uri: "https://github.com/ocp-rhdh-poc/myecommerceapp.git"
+      ref: "master"
+    type: Git
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: openshift
+        name: nodejs:16-ubi8
+  triggers:
+    - github:
+        secret: "bWVobWVobWVo"
+      type: GitHub
+    - type: ConfigChange
+    - imageChange: {}
+      type: ImageChange

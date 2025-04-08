@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: "myecommerceapp"
+    backstage.io/kubernetes-id: "myecommerceapp"
+  name: "myecommerceapp"
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 3000
+  selector:
+    deployment: "myecommerceapp"

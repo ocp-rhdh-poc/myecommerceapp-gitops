@@ -1,0 +1,36 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  # generateName: "myecommerceapp-pipeline-"
+  name: "myecommerceapp-pipeline"
+  annotations:
+    chains.tekton.dev/signed: "true"
+  finalizers:
+    - chains.tekton.dev/pipelinerun
+  labels:
+    tekton.dev/pipeline: clone-build-push
+    backstage.io/kubernetes-id: "myecommerceapp"
+spec:
+  params:
+    - name: GIT_REPO
+      value: "https://github.com/ocp-rhdh-poc/myecommerceapp.git"
+    - name: IMAGE_NAME
+      value: "myecommerceapp"
+  pipelineRef:
+    name: clone-build-push
+  serviceAccountName: pipeline
+  timeout: 1h0m0s
+  workspaces:
+    - name: source-repo
+      volumeClaimTemplate:
+        metadata:
+          creationTimestamp: null
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+          storageClassName: ocs-storagecluster-cephfs
+          volumeMode: Filesystem
+        status: {}

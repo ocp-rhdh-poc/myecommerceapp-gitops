@@ -1,0 +1,8 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: "myecommerceapp"
+  labels:
+    app: "myecommerceapp"
+    backstage.io/kubernetes-id: "myecommerceapp"
+spec: {}
